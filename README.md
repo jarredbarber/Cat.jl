@@ -11,16 +11,18 @@ using Cat
 @category Z
 
 struct Next <: Z.Arrow{Nothing, Nothing}
-   Next(f) = compose(new(), f)
 end
+
+Next(f) = compose(new(), f)
 
 zero = Z.Identity{Nothing}()
 one = Next(zero)
 two = Next(one)
 
 struct Prev <: Z.Arrow{Nothing, Nothing}
-   Prev(f) = compose(new(), f)
 end
+
+Prev(f) = compose(new(), f)
 
 # Inverse is currently broken
 @inverse Z Next Prev
