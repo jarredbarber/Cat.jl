@@ -1,9 +1,6 @@
 module Cat
 
-export Arrow, Identity, Initial, Terminal, FreeComposition
+export Arrow, Identity, @category, compose, lift, composition_obj
 include("arrow.jl")
-
-export Product, Proj
-include("cartesian.jl")
 
 end # end module
