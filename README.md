@@ -18,13 +18,12 @@ zero = Z.Identity{Nothing}()
 one = Next(zero)
 two = Next(one)
 
-# Below this line is TBD
-
 struct Prev <: Z.Arrow{Nothing, Nothing}
    Prev(f) = compose(new(), f)
 end
-   
-@inverse Next Prev
+
+# Inverse is currently broken
+@inverse Z Next Prev
 
 one = Prev(two)
 zero = Prev(one) # Yields Z.Identity{Nothing}()
