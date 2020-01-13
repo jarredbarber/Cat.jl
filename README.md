@@ -24,7 +24,6 @@ end
 
 Prev(f) = compose(new(), f)
 
-# Inverse is currently broken
 @inverse Z Next Prev
 
 one = Prev(two)

@@ -30,6 +30,7 @@ end
 
 "Defines composition rules making m1 and m2 inverses (an isomorphism pair)."
 macro inverse(category, m1, m2)
+    # TODO: auto-infer category
     esc(quote
         function compose(g::$m1, f::$m2)
             A, B = composition_obj(g, f)
@@ -38,13 +39,13 @@ macro inverse(category, m1, m2)
         end
         compose(g::$m2, f::$m1) = Cat.compose(f, g)
 
-        function compose(g::$m1, f::$category.Composed{T2, T1, S2, S1}) where {T1,S2,S1, T2 <: $m2}
+        function compose(g::$m1, f::$category.Composed{<:$m2}) 
             A, B = composition_obj(g, f.g)
             @assert A == B
             f.f
         end
 
-        function compose(g::$m2, f::$category.Composed{T2, T1, S2, S1}) where {T1,S2,S1, T2 <: $m1}
+        function compose(g::$m2, f::$category.Composed{<:$m1})
             A, B = composition_obj(g, f.g)
             @assert A == B
             f.f
