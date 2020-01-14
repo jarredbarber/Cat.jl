@@ -4,6 +4,8 @@ abstract type Arrow{A, B}; end
 
 source(t::Arrow{A,B}) where {A, B} = A
 target(t::Arrow{A,B}) where {A, B} = B
+
+"Compute the source and target of the composed morphism g o f, or error if they are not composable."
 function composition_obj(g::Arrow, f::Arrow)
     A = source(f)
     Bf = target(f)
@@ -26,6 +28,24 @@ function compose
 end
 
 function lift
+end
+
+macro morphism(category, name, in_tp, out_tp)
+    in_tp = in_tp.args
+    out_tp = out_tp.args
+    if isempty(in_tp)
+        esc(quote
+            struct $name <: $category.Arrow{$(out_tp...)}
+            end
+            $name(f) = compose($name(), f)
+            end)
+    else
+        esc(quote
+            struct $name{$(in_tp...)} <: $category.Arrow{$(out_tp...)}
+            end
+            $name{$(in_tp...)}(f) = compose($name{$(in_tp...)}(), f)
+            end)
+    end
 end
 
 "Defines composition rules making m1 and m2 inverses (an isomorphism pair)."

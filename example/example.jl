@@ -1,15 +1,9 @@
 using Cat
 @category Z
 
-struct Next <: Z.Arrow{Nothing, Nothing}
-end
-
-struct Prev <: Z.Arrow{Nothing, Nothing}
-end
-
-Next(f) = compose(Next(), f)
-Prev(f) = compose(Prev(), f)
-
+# Next is a morphism in Z from Nothing~>Nothing
+@morphism Z Next {} {Nothing, Nothing}
+@morphism Z Prev {} {Nothing, Nothing}
 @inverse Z Next Prev
 
 println(Next(Prev()))

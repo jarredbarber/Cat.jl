@@ -10,21 +10,17 @@ using Cat
 # New category
 @category Z
 
-struct Next <: Z.Arrow{Nothing, Nothing}
-end
+# "Next is a single morphism in Z (no type parameters) from Nothing -> Nothing"
+@morphism Z Next {} {Nothing, Nothing}
+@morphism Z Prev {} {Nothing, Nothing}
+@inverse Z Next Prev # Make (Next, Prev) an isomorphism pair
 
-Next(f) = compose(new(), f)
-
+# Do some algebra
 zero = Z.Identity{Nothing}()
 one = Next(zero)
 two = Next(one)
 
-struct Prev <: Z.Arrow{Nothing, Nothing}
-end
-
 Prev(f) = compose(new(), f)
-
-@inverse Z Next Prev
 
 one = Prev(two)
 zero = Prev(one) # Yields Z.Identity{Nothing}()
