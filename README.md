@@ -33,7 +33,8 @@ end
     Sample(N) = new(Random.GLOBAL_RNG, N, Dict())
 end
 
-"Hook for common state update rules; called when @interpret is used"
+# Hook for common state update rules; called when @interpret is used.
+# In this case, we need to memoize samples to achieve correct semantics.
 function interp_state_hook(s::Sample, m::Model.Arrow, value_expr)
   if !haskey(s.samples, m)
       s.samples[m] = value_expr()
