@@ -2,3 +2,6 @@ name = "Cat"
 uuid = "b77363fd-3a49-479f-a61f-2294a754cce1"
 authors = ["Jarred Barber <jpb5082@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
