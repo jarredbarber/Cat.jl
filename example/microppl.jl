@@ -2,10 +2,11 @@ using Cat
 using Random
 using MacroTools
 
-@category Model
 
+@category Model
 @morphism Model Normal {} {Tuple{Float64, Float64}, Float64}
 
+# A functor Model => Set that composes as a state monad
 @stateful Sample (=>) Model begin
     rng::AbstractRNG
     N::Int64
@@ -13,23 +14,18 @@ using MacroTools
     Sample(N) = new(Random.GLOBAL_RNG, N, Dict())
 end
 
-macro defsampler(state, arrow, args, expr)
-    @capture(arrow, m_::T_)
-    if args.head == :tuple
-        args = args.args
-    end
-
-    esc(quote
-        function ($state::Sample)($arrow, $(args...))
-          if !haskey($state.samples, $m)
-            $state.samples[$m] = $expr
-          end
-          $state.samples[$m]
-        end
-      end)
+"Hook for common state update rules; called when @stateful_wrap is used"
+function stateful_hook(s::Sample, m::Model.Arrow, value_expr)
+  if !haskey(s.samples, m)
+      s.samples[m] = value_expr()
+  end
+  s.samples[m]
 end
 
-@defsampler s m::Normal (μ, σ) μ .+ σ.*randn(s.rng, s.N)
+"Sample from a normal"
+@stateful_wrap function (s::Sample)(m::Normal, μ, σ)
+    μ .+ σ.*randn(s.rng, s.N)
+end
 
 z = Normal(1.0, 3.0)
 y = Normal(z, 2.0)

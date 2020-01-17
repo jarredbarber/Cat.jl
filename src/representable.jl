@@ -1,7 +1,8 @@
-"Representable is a functor from a category into a computation "
+using MacroTools
 
+"Representable is a functor from a category into a computation "
 abstract type StatefulFunctor{C}; end
-export StatefulFunctor
+export StatefulFunctor, @stateful, @stateful_wrap
 
 macro stateful(name, variance, category, state_def)
     esc(quote
@@ -14,5 +15,16 @@ macro stateful(name, variance, category, state_def)
         (s::$name)(m::$category.Proj, inp...) = inp[m.m]
         (s::$name)(m::$category.Constant, inp...) = m.val
         (s::$name)(m::$category.Terminal, inp...) = nothing
+        stateful_hook(s::$name, m::$category.Arrow, value_expr) = value_expr()
+        end)
+end
+
+macro stateful_wrap(fn)
+    @capture(fn, function (s_::functor_)(m_::arrow_, args__) expr__ end) || error("Can't destructure input expression")
+    esc(quote
+          function ($s::$functor)($m::$arrow, $(args...))
+            value_expr = () -> begin $(expr...) end
+            stateful_hook($s, $m, value_expr)
+          end
         end)
 end
