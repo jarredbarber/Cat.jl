@@ -14,7 +14,7 @@ using MacroTools
     Sample(N) = new(Random.GLOBAL_RNG, N, Dict())
 end
 
-"Hook for common state update rules; called when @stateful_wrap is used"
+"Hook for common state update rules; called when @interpret is used"
 function interp_state_hook(s::Sample, m::Model.Arrow, value_expr)
   if !haskey(s.samples, m)
       s.samples[m] = value_expr()
