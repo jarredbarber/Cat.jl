@@ -7,7 +7,7 @@ using MacroTools
 @morphism Model Normal {} {Tuple{Float64, Float64}, Float64}
 
 # A functor Model => Set that composes as a state monad
-@stateful Sample (=>) Model begin
+@interpretation Sample (=>) Model begin
     rng::AbstractRNG
     N::Int64
     samples::Dict{Model.Arrow, Any}
@@ -15,7 +15,7 @@ using MacroTools
 end
 
 "Hook for common state update rules; called when @stateful_wrap is used"
-function stateful_hook(s::Sample, m::Model.Arrow, value_expr)
+function interp_state_hook(s::Sample, m::Model.Arrow, value_expr)
   if !haskey(s.samples, m)
       s.samples[m] = value_expr()
   end
@@ -23,7 +23,7 @@ function stateful_hook(s::Sample, m::Model.Arrow, value_expr)
 end
 
 "Sample from a normal"
-@stateful_wrap function (s::Sample)(m::Normal, μ, σ)
+@interpret function (s::Sample)(m::Normal, μ, σ)
     μ .+ σ.*randn(s.rng, s.N)
 end
 
