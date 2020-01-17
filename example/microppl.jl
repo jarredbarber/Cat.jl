@@ -1,7 +1,5 @@
 using Cat
 using Random
-using MacroTools
-
 
 @category Model
 @morphism Model Normal {} {Tuple{Float64, Float64}, Float64}
