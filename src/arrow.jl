@@ -5,7 +5,7 @@ abstract type Arrow{A, B}; end
 source(t::Arrow{A,B}) where {A, B} = A
 target(t::Arrow{A,B}) where {A, B} = B
 
-export source, target
+export source, target, @arrow
 
 "Compute the source and target of the composed morphism g o f, or error if they are not composable."
 function composition_obj(g::Arrow, f::Arrow)
@@ -32,22 +32,37 @@ end
 function lift
 end
 
-macro morphism(category, name, in_tp, out_tp)
-    in_tp = in_tp.args
-    out_tp = out_tp.args
-    if isempty(in_tp)
-        esc(quote
-            struct $name <: $category.Arrow{$(out_tp...)}
-            end
-            $name(f...) = compose($name(), f...)
-            end)
-    else
-        esc(quote
-            struct $name{$(in_tp...)} <: $category.Arrow{$(out_tp...)}
-            end
-            $name{$(in_tp...)}(f...) = compose($name{$(in_tp...)}(), f...)
-            end)
+"
+```
+@arrow C Name{T1, T2} :: A --> B mutable struct
+    p1::T1
+    p2::T2
+end
+```
+
+or
+
+```
+@arrow C Adder{T<:Number} :: T --> T
+```
+"
+macro arrow(category, type_expr, structure=:())
+    @capture(type_expr, name_ :: src_ --> tgt_)
+    # TODO: Walk src, tgt and convert, e.g., (A, B) to Tuple{A, B}
+    if isexpr(src, :tuple)
+        src = :(Tuple{$(src.args...)})
     end
+    has_type_params = @capture(name, sname_{targs__})
+    new_expr = has_type_params ? :(new{$(targs...)}()) : :(new())
+    where_expr = has_type_params ? :(where{$(targs...)}) : :()
+    # TODO: Parse out structure fields and inner constructors
+    #       then auto-composify inner constructors
+    esc(quote
+        mutable struct $name <: $category.Arrow{$src, $tgt}
+           $(structure.args...)
+           $name(args...) = compose($new_expr, args...)
+        end
+        end)
 end
 
 "Defines composition rules making m1 and m2 inverses (an isomorphism pair)."
@@ -103,8 +118,12 @@ macro category(arrow_type, flags...)
 
             # Handle tuples automatically
             function Cat.compose(g::T2, fs...) where {T2 <: Arrow}
-                fs = lift.(fs)
-                Cat.compose(g, Product(fs...))
+                if isempty(fs)
+                    g
+                else
+                    fs = lift.(fs)
+                    Cat.compose(g, Product(fs...))
+                end
             end
 
             # General composition

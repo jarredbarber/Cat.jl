@@ -6,23 +6,46 @@ Example:
 
 ```julia
 using Cat
+using Random
 
-# New category
-@category Z
+@category Model
 
-# "Next is a single morphism in Z (no type parameters) from Nothing -> Nothing"
-@morphism Z Next {} {Nothing, Nothing}
-@morphism Z Prev {} {Nothing, Nothing}
-@inverse Z Next Prev # Make (Next, Prev) an isomorphism pair
+@arrow Model Normal :: (Float64, Float64) --> Float64
+@arrow Model Uniform :: Nothing --> Float64
 
-# Do some algebra
-zero = Z.Identity{Nothing}()
-one = Next(zero)
-two = Next(one)
+# A functor Model => Set that composes as a state monad
+@interpretation Sample (=>) Model begin
+    rng::AbstractRNG
+    N::Int64
+    samples::Dict{Model.Arrow, Any}
+    Sample(N) = new(Random.GLOBAL_RNG, N, Dict())
+end
 
-Prev(f) = compose(new(), f)
+"Hook for common state update rules; called when @interpret is used"
+function interp_state_hook(s::Sample, m::Model.Arrow, value_expr)
+  if !haskey(s.samples, m)
+      s.samples[m] = value_expr()
+  end
+  s.samples[m]
+end
 
-one = Prev(two)
-zero = Prev(one) # Yields Z.Identity{Nothing}()
+"Sample from a normal"
+@interpret function (s::Sample)(m::Normal, μ, σ)
+    μ .+ σ.*randn(s.rng, s.N)
+end
+@interpret function (s::Sample)(m::Uniform, _)
+    rand(s.rng, s.N)
+end
 
+
+z = Normal(1.0, Uniform())
+y = Normal(z, 2.0)
+x = Normal(z, y)
+
+samples = Sample(5000)(x, nothing)
+
+μ = sum(samples)/length(samples)
+σ = sqrt( sum( (samples .- μ).^2 ) / length(samples) )
+
+println("Sample μ/σ: $μ, $σ")
 ```

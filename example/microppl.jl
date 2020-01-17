@@ -2,7 +2,9 @@ using Cat
 using Random
 
 @category Model
-@morphism Model Normal {} {Tuple{Float64, Float64}, Float64}
+
+@arrow Model Normal :: (Float64, Float64) --> Float64
+@arrow Model Uniform :: Nothing --> Float64
 
 # A functor Model => Set that composes as a state monad
 @interpretation Sample (=>) Model begin
@@ -24,8 +26,12 @@ end
 @interpret function (s::Sample)(m::Normal, μ, σ)
     μ .+ σ.*randn(s.rng, s.N)
 end
+@interpret function (s::Sample)(m::Uniform, _)
+    rand(s.rng, s.N)
+end
 
-z = Normal(1.0, 3.0)
+
+z = Normal(1.0, Uniform())
 y = Normal(z, 2.0)
 x = Normal(z, y)
 
