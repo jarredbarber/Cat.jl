@@ -6,11 +6,34 @@ struct Product{N, A, T} <: Arrow{A, T}
     Product(arrows...) = begin
         N = length(arrows)
         if N == 0
-            Terminal{A}()
+            # TODO: how to best define this?
+            Identity{Nothing}()
         else
-            A = source(arrows[1])
-            T = Tuple{[target(a) for a in arrows]...}
-            new{N, A, T}(arrows)
+            src = Nothing
+            T = []
+            # This is some weird logic to let you
+            # take products where some arrow have source A and
+            # some have Nothing.  This is done by replacing each
+            # arrow α :: Nothing --> T with α' = α o Terminal{A}
+            # This is pretty important to make things work nicely with
+            # constants.
+            for a in arrows
+                push!(T, target(a))
+                s = source(a)
+                if s != Nothing
+                    if src == Nothing
+                        src = s
+                    elseif src != s
+                        error("Incompatible source types $(src), $s")
+                    end
+                end
+            end
+
+            if src != Nothing
+                arrows = tuple([source(a) == Nothing ? Cat.compose(a, Terminal{src}()) : a for a in arrows]...)
+            end
+
+            new{N, src, Tuple{T...}}(arrows)
         end
     end
 end

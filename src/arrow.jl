@@ -21,9 +21,6 @@ function composition_obj(g::Arrow, f::Arrow)
     end
 end
 
-abstract type Identity{A} <: Arrow{A, A}
-end
-
 parent_category(a::Type{<:Arrow}) = __module__
 
 function compose
@@ -96,6 +93,7 @@ macro category(arrow_type, flags...)
     e =
         quote
             module $arrow_type
+            export Arrow, Identity, Terminal, Composed, Constant
             using Cat
             abstract type Arrow{A, B} <: Cat.Arrow{A, B}; end
             struct Identity{A} <: Arrow{A, A}; end

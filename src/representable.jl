@@ -14,6 +14,7 @@ macro interpretation(name, variance, category, state_def=Expr(:dummy))
         (s::$name)(m::$category.Product, inp...) = tuple([s(x, inp...) for x in m.factors]...)
         (s::$name)(m::$category.Proj, inp...) = inp[m.m]
         (s::$name)(m::$category.Constant, inp...) = m.val
+        (s::$name)(m::$category.Identity, inp) = inp
         (s::$name)(m::$category.Terminal, inp...) = nothing
         interp_state_hook(s::$name, m::$category.Arrow, value_expr) = value_expr()
         end)

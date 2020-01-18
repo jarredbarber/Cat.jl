@@ -26,6 +26,7 @@ end
 @interpret function (s::Sample)(m::Normal, μ, σ)
     μ .+ σ.*randn(s.rng, s.N)
 end
+"Sample from a uniform"
 @interpret function (s::Sample)(m::Uniform, _)
     rand(s.rng, s.N)
 end
@@ -41,3 +42,12 @@ samples = Sample(5000)(x, nothing)
 σ = sqrt( sum( (samples .- μ).^2 ) / length(samples) )
 
 println("Sample μ/σ: $μ, $σ")
+
+@interpretation Filter (<=) Model begin
+    rng::AbstractRNG
+    N::Int64
+end
+
+@interpret function (s::Sample)(m::Normal, z)
+
+end
