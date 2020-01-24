@@ -17,7 +17,7 @@ const R = Float64
 @arrow Smooth Cos :: R --> R
 
 # Just an unbound input is equivalent to the identity morphism
-Variable = Smooth.Identity{R}
+Placeholder = Smooth.Identity{R}
 
 Base.:+(a::Smooth.Arrow, b) = Plus(a, b)
 Base.:+(a, b::Smooth.Arrow) = Plus(a, b)
@@ -65,26 +65,20 @@ end
 # primitive arrows
 @functor Diff :: Smooth => Smooth (T -> Tuple{T, T})
 
-# this is ugly and needs fixed
-# Represents inputs that look like (a, da)
-const R2 = Tuple{R,R}
-diff_inputs() = (Smooth.Proj{R2,R}(1),
-                 Smooth.Proj{R2,R}(2))
-
-diff_inputs2() = begin
-    Inp = Tuple{R2, R2}
-    (Smooth.Proj{Inp, R2}(1),
-     Smooth.Proj{Inp, R2}(2))
+function split_inputs(m::Smooth.Arrow)
+    A = Diff(source(m))
+    p = A.parameters
+    tuple([Smooth.Proj{A, p[k]}(k) for k in 1:length(p)]...)
 end
 
 function Diff(m::Plus)
-    a, b = diff_inputs2()
+    a, b = split_inputs(m)
     Smooth.Product(a[1] + b[1],
             a[2] + b[2])
 end
 
 function Diff(m::Mult)
-    a, b = diff_inputs2()
+    a, b = split_inputs(m)
     Smooth.Product(a[1]*b[1],
             a[1]*b[2] + a[2]*b[1])
 end
@@ -95,24 +89,24 @@ function Diff(m::Smooth.Constant)
 end
 
 function Diff(m::Exp)
-    a, da = diff_inputs()
+    a, da = split_inputs(m)
     Smooth.Product(exp(a), da*exp(a))
 end
 
 function Diff(m::Sin)
-    a, da = diff_inputs()
+    a, da = split_inputs(m)
     Smooth.Product(sin(a), da*cos(a))
 end
 
 function Diff(m::Cos)
-    a, da = diff_inputs()
+    a, da = split_inputs(m)
     Smooth.Product(cos(a), -da*sin(a))
 end
 
-# Test it out
-x = Variable()
-y = sin(x) + cos(x)
-y = exp(y*y)
+# Here is the actual "user code"
+x = Placeholder()
+y = sin(x) + 0.5*cos(x)
+y = exp(y*y) + 2.0
 dy = Diff(y)
 
 println(Eval()(y, 0.0))
