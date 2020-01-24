@@ -2,6 +2,15 @@
 
 Library for building composable DSLs with multiple interpretaions ala [Compiling To Categories](http://conal.net/papers/compiling-to-categories)
 
+## Basic concepts
+
+1. `@category` defines a new category, which is a collection of arrows - composable building blocks.
+2. `@arrow` defines a new composable arrow with source/target types
+3. `@interpretation` defines an execution of an arrow, which automatically composes.
+4. `@functor A => B` defines a mapping between composable arrows of two categories
+
+## Toy examples
+
 Example (forward-mode autodiff, `example/autodiff.jl`):
 
 ``` julia
@@ -10,9 +19,7 @@ using Cat
 # "Real" numbers
 const R = Float64
 
-# The only objects in Smooth are Nothing, R, and products of these
-@category Smooth #where objects = obj -> obj in (Nothing, R, Tuple)
-# @category Linear ⊂ Smooth arrows = (Plus, Mult, Neg)
+@category Smooth
 
 # Basic algebra
 @arrow Smooth Plus :: (R, R) --> R
