@@ -34,7 +34,7 @@ Base.sin(a::Smooth.Arrow) = Sin(a)
 Base.cos(a::Smooth.Arrow) = Cos(a)
 
 # Evaluate an expression tree
-@interpretation Eval => Smooth
+@interpretation Eval (=>) Smooth
 
 @interpret function (e::Eval)(m::Plus, a, b)
     a + b
@@ -111,9 +111,8 @@ end
 
 # Test it out
 x = Variable()
-y = 2.0 + x
-# y = 3.0*sin(x) + cos(x)
-# y = exp(y*y)
+y = sin(x) + cos(x)
+y = exp(y*y)
 dy = Diff(y)
 
 println(Eval()(y, 0.0))

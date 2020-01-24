@@ -15,7 +15,7 @@ macro interpretation(name, variance, category, state_def=Expr(:dummy))
         (s::$name)(m::$category.Proj, inp...) = inp[m.m]
         (s::$name)(m::$category.Constant, inp...) = m.val
         (s::$name)(m::$category.Identity, inp) = inp
-        (s::$name)(m::$category.Terminal, inp...) = nothing
+        (s::$name)(m::$category.Terminal, inp...) = ()
         interp_state_hook(s::$name, m::$category.Arrow, value_expr) = value_expr()
         end)
 end
@@ -42,12 +42,13 @@ macro functor(sig, obj_map)
         end
         # Functions are (src morphism × input) -> (tgt morphism)
         $name(m::$src.Composed) = compose($name(m.g), $name(m.f)) #$tgt.Composed($name(m.g), $name(m.f))
+        $name(m::$src.Identity{T}) where {T} = $tgt.Identity{$name(T)}()
+        # Cartesian
         $name(m::$src.Product) = $tgt.Product([$name(x) for x in m.factors]...)
         $name(m::$src.Proj{A, B}) where {A,B} = $tgt.Proj{$name(A), $name(B)}(m.m)
         # need to define this
         # $name(m::$src.Constant) = $tgt.Constant(m.val)
-        $name(m::$src.Identity{T}) where {T} = $tgt.Identity{$name(T)}()
-        $name(m::$src.Terminal) = $tgt.Terminal{typeof(m).parameters...}()
+        $name(m::$src.Terminal{T}) where {T} = $tgt.Terminal{$name(T)}()
         end)
 end
 

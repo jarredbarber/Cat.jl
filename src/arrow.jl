@@ -116,12 +116,17 @@ macro category(arrow_type, flags...)
 
             # Handle tuples automatically
             function Cat.compose(g::T2, fs...) where {T2 <: Arrow}
-                if isempty(fs)
+                if isnothing(fs) || isempty(fs)
                     g
                 else
                     fs = lift.(fs)
                     Cat.compose(g, Product(fs...))
                 end
+            end
+
+            # Handle terminals
+            function Cat.compose(g::Terminal{A}, f::Arrow{B,A}) where {A, B}
+                Terminal{B}()
             end
 
             # General composition
