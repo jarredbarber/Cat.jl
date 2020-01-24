@@ -2,7 +2,7 @@ using MacroTools
 
 "Representable is a functor from a category into a computation "
 abstract type StatefulFunctor{C}; end
-export StatefulFunctor, @interpretation, @interpret
+export StatefulFunctor, @interpretation, @interpret, @functor
 
 macro interpretation(name, variance, category, state_def=Expr(:dummy))
     esc(quote
@@ -28,4 +28,29 @@ macro interpret(fn)
             interp_state_hook($s, $m, value_expr)
           end
         end)
+end
+
+macro functor(sig, obj_map)
+    @capture(sig, name_ :: src_ => tgt_)
+    @capture(obj_map, var_ -> body_)
+    esc(quote
+        struct $name
+        end
+
+        function $name($var::Type)
+           $(body.args...)
+        end
+        # Functions are (src morphism × input) -> (tgt morphism)
+        $name(m::$src.Composed) = Cat.compose($name(m.g), $name(m.f)) #$tgt.Composed($name(m.g), $name(m.f))
+        $name(m::$src.Product) = $tgt.Product([$name(x) for x in m.factors]...)
+        $name(m::$src.Proj{A, B}) where {A,B} = $tgt.Proj{$name(A), $name(B)}(m.m)
+        # need to define this
+        # $name(m::$src.Constant) = $tgt.Constant(m.val)
+        $name(m::$src.Identity{T}) where {T} = $tgt.Identity{$name(T)}()
+        $name(m::$src.Terminal) = $tgt.Terminal{typeof(m).parameters...}()
+        end)
+end
+
+macro funct(f)
+    f
 end

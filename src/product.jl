@@ -54,9 +54,7 @@ Base.getindex(m::Product{N, A, T}, k::Int64) where {N, A, T} = begin
     end
 end
 
-Base.getindex(m::Arrow{A, B}, k::Int64) where {A, B} = begin
-    if 0 < k < length(B)
-        Proj{A, B[k]}()
-    end
+Base.getindex(m::Arrow{A, B}, k::Int64) where {A, B<:Tuple} = begin
+    Cat.compose(Proj{B, B.parameters[k]}(k), m)
 end
 end # quote

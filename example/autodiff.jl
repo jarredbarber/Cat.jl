@@ -4,11 +4,11 @@ using Cat
 const R = Float64
 
 # The only objects in Smooth are Nothing, R, and products of these
-@category Smooth where objects = obj -> obj in (Nothing, R, Tuple)
+@category Smooth #where objects = obj -> obj in (Nothing, R, Tuple)
 # @category Linear ⊂ Smooth arrows = (Plus, Mult, Neg)
 
 # Basic algebra
-@arrow Smooth Plus{T} :: (T, T) --> T
+@arrow Smooth Plus :: (R, R) --> R
 @arrow Smooth Mult :: (R, R) --> R
 @arrow Smooth Neg :: R --> R
 # Calc 1
@@ -51,47 +51,69 @@ end
 @interpret function (e::Eval)(m::Exp, a)
     exp(a)
 end
+
 @interpret function (e::Eval)(m::Sin, a)
     sin(a)
 end
+
 @interpret function (e::Eval)(m::Cos, a)
     cos(a)
 end
 
-@functor Diff :: Smooth --> Smooth begin
-    objects = o -> (o, o)
+# Functor is a map from arrow -> arrow
+# @functor defines a function Diff for all of the
+# primitive arrows
+@functor Diff :: Smooth => Smooth (o -> (o, o))
+
+# this is ugly and needs fixed
+# Represents inputs that look like (a, da)
+const R2 = Tuple{R,R}
+diff_inputs() = (Smooth.Proj{R2,R}(1),
+                 Smooth.Proj{R2,R}(2))
+
+diff_inputs2() = begin
+    Inp = Tuple{R2, R2}
+    (Smooth.Proj{Inp, R2}(1),
+     Smooth.Proj{Inp, R2}(2))
 end
 
-@funct function (e::Diff)(m::Plus, (a, da), (b, db))
-    a+b, da + db
+function Diff(m::Plus)
+    a, b = diff_inputs2()
+    Smooth.Product(a[1] + b[1],
+            a[2] + b[2])
 end
 
-@funct function (e::Diff)(m::Mult, (a, da), (b, db))
-    a*b, a*da + b*db
+function Diff(m::Mult)
+    a, b = diff_inputs2()
+    Smooth.Product(a[1]*b[1],
+            a[1]*b[2] + a[2]*b[1])
 end
 
-@funct function (d::Diff)(m::Smooth.Constant, _)
-    m.value, zero()
+function Diff(m::Smooth.Constant)
+    Smooth.Product(Smooth.Constant(m.val),
+        Smooth.Constant(0.0))
 end
 
-@funct function (d::Diff)(m::Exp, (a, da))
-    Exp(a), Mult(da, Exp(a))
+function Diff(m::Exp)
+    a, da = diff_inputs()
+    Smooth.Product(exp(a), da*exp(a))
 end
 
-@funct function (e::Diff)(m::Sin, (a, da))
-    Sin(a), da*Cos(a),
+function Diff(m::Sin)
+    a, da = diff_inputs()
+    Smooth.Product(sin(a), da*cos(a))
 end
 
-@funct function (e::Diff)(m::Cos, (a, da))
-    Cos(a), -da*Sin(a)
+function Diff(m::Cos)
+    a, da = diff_inputs()
+    Smooth.Product(cos(a), -da*sin(a))
 end
 
 # Test it out
 x = Variable()
-y = cos(x + 3.0)
-z = sin(y) + cos(x)
+y = sin(x) + cos(x)
+# y = exp(y*y)
+dy = Diff(y)
 
-dz = Diff(z)
-
-println(Eval()(z, 1.0))
-println(Eval()(dz, (1.0, 1.0)))
+println(Eval()(y, 0.0))
+println(Eval()(dy, 0.0, 1.0))
