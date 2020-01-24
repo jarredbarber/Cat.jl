@@ -34,7 +34,7 @@ Base.sin(a::Smooth.Arrow) = Sin(a)
 Base.cos(a::Smooth.Arrow) = Cos(a)
 
 # Evaluate an expression tree
-@interpretation Eval (=>) Smooth
+@interpretation Eval => Smooth
 
 @interpret function (e::Eval)(m::Plus, a, b)
     a + b
@@ -63,7 +63,7 @@ end
 # Functor is a map from arrow -> arrow
 # @functor defines a function Diff for all of the
 # primitive arrows
-@functor Diff :: Smooth => Smooth (o -> (o, o))
+@functor Diff :: Smooth => Smooth (T -> Tuple{T, T})
 
 # this is ugly and needs fixed
 # Represents inputs that look like (a, da)
@@ -111,7 +111,8 @@ end
 
 # Test it out
 x = Variable()
-y = sin(x) + cos(x)
+y = 2.0 + x
+# y = 3.0*sin(x) + cos(x)
 # y = exp(y*y)
 dy = Diff(y)
 

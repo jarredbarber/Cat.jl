@@ -41,7 +41,7 @@ macro functor(sig, obj_map)
            $(body.args...)
         end
         # Functions are (src morphism × input) -> (tgt morphism)
-        $name(m::$src.Composed) = Cat.compose($name(m.g), $name(m.f)) #$tgt.Composed($name(m.g), $name(m.f))
+        $name(m::$src.Composed) = compose($name(m.g), $name(m.f)) #$tgt.Composed($name(m.g), $name(m.f))
         $name(m::$src.Product) = $tgt.Product([$name(x) for x in m.factors]...)
         $name(m::$src.Proj{A, B}) where {A,B} = $tgt.Proj{$name(A), $name(B)}(m.m)
         # need to define this
