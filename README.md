@@ -1,13 +1,24 @@
 # 🐱.jl - Cartesian Closed Categories
 
-Library for building composable DSLs with multiple interpretaions ala [Compiling To Categories](http://conal.net/papers/compiling-to-categories)
+Library for building composable DSLs with multiple interpretaions ala [Compiling To Categories](http://conal.net/papers/compiling-to-categories).
 
 ## Basic concepts
 
-1. `@category` defines a new category, which is a collection of arrows - composable building blocks.
-2. `@arrow` defines a new composable arrow with source/target types
+1. `@category` defines a new category, which is a collection of arrows - composable building blocks.  An `Arrow{A, B}` can always be composed with an `Arrow{B, C}` (in the same category) to form an `Arrow{A, C}`.
+2. `@arrow` defines a new "primitive" composable arrow with source/target types.
 3. `@interpretation` defines an execution of an arrow, which automatically composes.
 4. `@functor A => B` defines a mapping between composable arrows of two categories
+
+## MVP Checklist
+
+* [x] Basic Cateogory definition
+* [ ] Parametric arrow types
+* [x] Cartesian category constructions (products)
+* [ ] Closed category constructions (exponentials / higher-order arrows)
+* [x] Intepretations (executable functors)
+* [x] Covariant functors
+* [ ] Contravariant (arrow-reversing) functors/interpretations
+* [ ] Compelling example utilizing all of the above :)
 
 ## Toy examples
 
