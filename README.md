@@ -5,7 +5,7 @@ Library for building composable DSLs with multiple interpretaions ala [Compiling
 ## Basic concepts
 
 1. `@category` defines a new category, which is a collection of arrows - composable building blocks.  An `Arrow{A, B}` can always be composed with an `Arrow{B, C}` (in the same category) to form an `Arrow{A, C}`.
-2. `@arrow` defines a new "primitive" composable arrow with source/target types.
+2. `@arrow` defines a new "primitive" composable arrow with source/target types. `@alias` binds an arrow to a function for, e.g., re-using standard syntax.
 3. `@interpretation` defines an execution of an arrow, which automatically composes.
 4. `@functor A => B` defines a mapping between composable arrows of two categories
 
@@ -44,15 +44,9 @@ const R = Float64
 # Just an unbound input is equivalent to the identity morphism
 Placeholder = Smooth.Identity{R}
 
-Base.:+(a::Smooth.Arrow, b) = Plus(a, b)
-Base.:+(a, b::Smooth.Arrow) = Plus(a, b)
-Base.:+(a::Smooth.Arrow, b::Smooth.Arrow) = Plus(a, b)
-
+@alias Smooth Plus Base.:+ 2
+@alias Smooth Mult Base.:* 2
 Base.:-(a::Smooth.Arrow) = Neg(a)
-
-Base.:*(a::Smooth.Arrow, b) = Mult(a, b)
-Base.:*(a, b::Smooth.Arrow) = Mult(a, b)
-Base.:*(a::Smooth.Arrow, b::Smooth.Arrow) = Mult(a, b)
 
 Base.exp(a::Smooth.Arrow) = Exp(a)
 Base.sin(a::Smooth.Arrow) = Sin(a)
