@@ -17,15 +17,10 @@ function example()
     EFE = Ric - 0.5*Rsc*g - (8*π)*T
 end
 
-Base.:+(a::TensorNetwork.Arrow, b) = TSum(a, b)
-Base.:+(a, b::TensorNetwork.Arrow) = TSum(a, b)
-Base.:+(a::TensorNetwork.Arrow, b::TensorNetwork.Arrow) = TSum(a, b)
-
+@alias TensorNetwork TSum Base.:+ 2
+@alias TensorNetwork TProd Base.:* 2
 Base.:*(a::Float64, b::TensorNetwork.Arrow) = TProd(a*ones(), b)
 Base.:*(a::TensorNetwork.Arrow, b::Float64) = TProd(b*ones(), a)
-Base.:*(a, b::TensorNetwork.Arrow) = TProd(a, b)
-Base.:*(a::TensorNetwork.Arrow, b) = TProd(a, b)
-Base.:*(a::TensorNetwork.Arrow, b::TensorNetwork) = TProd(a, b)
 
 tensor(nd::Int64) = TensorNetwork.Identity{Tensor{nd}}()
 

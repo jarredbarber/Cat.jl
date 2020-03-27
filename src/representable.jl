@@ -31,8 +31,14 @@ macro interpret(fn)
 end
 
 macro functor(sig, obj_map)
-    @capture(sig, name_ :: src_ => tgt_)
     @capture(obj_map, var_ -> body_)
+    comp_body = 
+        if @capture(sig, name_ :: src_ => tgt_)
+            :($name(m::$src.Composed) = compose($name(m.g), $name(m.f)))
+        elseif @capture(sig, name_ :: src_ <= tgt_)
+            :($name(m::$src.Composed) = compose($name(m.f), $name(m.g)))
+        else
+        end
     esc(quote
         struct $name
         end
@@ -40,8 +46,8 @@ macro functor(sig, obj_map)
         function $name($var::Type)
            $(body.args...)
         end
+        $comp_body
         # Functions are (src morphism × input) -> (tgt morphism)
-        $name(m::$src.Composed) = compose($name(m.g), $name(m.f)) #$tgt.Composed($name(m.g), $name(m.f))
         $name(m::$src.Identity{T}) where {T} = $tgt.Identity{$name(T)}()
         # Cartesian
         $name(m::$src.Product) = $tgt.Product([$name(x) for x in m.factors]...)
@@ -52,6 +58,3 @@ macro functor(sig, obj_map)
         end)
 end
 
-macro funct(f)
-    f
-end

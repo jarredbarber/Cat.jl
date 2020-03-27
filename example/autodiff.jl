@@ -5,7 +5,6 @@ const R = Float64
 
 # The only objects in Smooth are Nothing, R, and products of these
 @category Smooth #where objects = obj -> obj in (Nothing, R, Tuple)
-# @category Linear ⊂ Smooth arrows = (Plus, Mult, Neg)
 
 # Basic algebra
 @arrow Smooth Plus :: (R, R) --> R
@@ -19,15 +18,9 @@ const R = Float64
 # Just an unbound input is equivalent to the identity morphism
 Placeholder = Smooth.Identity{R}
 
-Base.:+(a::Smooth.Arrow, b) = Plus(a, b)
-Base.:+(a, b::Smooth.Arrow) = Plus(a, b)
-Base.:+(a::Smooth.Arrow, b::Smooth.Arrow) = Plus(a, b)
-
-Base.:-(a::Smooth.Arrow) = Neg(a)
-
-Base.:*(a::Smooth.Arrow, b) = Mult(a, b)
-Base.:*(a, b::Smooth.Arrow) = Mult(a, b)
-Base.:*(a::Smooth.Arrow, b::Smooth.Arrow) = Mult(a, b)
+@alias Smooth Plus Base.:+ 2
+@alias Smooth Neg Base.:- 1
+@alias Smooth Mult Base.:* 2 
 
 Base.exp(a::Smooth.Arrow) = Exp(a)
 Base.sin(a::Smooth.Arrow) = Sin(a)

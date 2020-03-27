@@ -2,10 +2,12 @@
 
 abstract type Arrow{A, B}; end
 
-source(t::Arrow{A,B}) where {A, B} = A
-target(t::Arrow{A,B}) where {A, B} = B
+source(::Arrow{A,B}) where {A, B} = A
+source(::Type{Arrow{A,B}}) where {A, B} = A
+target(::Arrow{A,B}) where {A, B} = B
+target(::Type{Arrow{A,B}}) where {A, B} = B
 
-export source, target, @arrow
+export source, target, @arrow, @alias
 
 "Compute the source and target of the composed morphism g o f, or error if they are not composable."
 function composition_obj(g::Arrow, f::Arrow)
@@ -62,6 +64,32 @@ macro arrow(category, type_expr, structure=:())
         end)
 end
 
+"Aliases an arrow constructor to a function"
+macro alias(category, arrow_type, alias, arity)
+    # TODO: automatically determine arity
+    exprs = []
+    args = convert(Vector{Any}, [Symbol("arg$k") for k in 1:arity])
+    aargs = [:($a::$category.Arrow) for a in args]
+
+    for q=1:(2^arity-1)
+        pattern = q
+        vargs = copy(args)
+        k = 1
+        while pattern > 0
+            if pattern & 1 == 1
+                vargs[k] = aargs[k]
+            end
+            pattern >>= 1
+            k += 1
+        end
+        push!(exprs, :($alias($(vargs...)) = $arrow_type($(args...))))
+    end
+
+    esc(quote
+            $(exprs...)
+        end)
+end
+
 "Defines composition rules making m1 and m2 inverses (an isomorphism pair)."
 macro inverse(category, m1, m2)
     # TODO: auto-infer category
@@ -89,7 +117,7 @@ end
 
 "Define a new category, which manifests itself as a module with some populated types."
 macro category(arrow_type, flags...)
-    product_code = include("../src/product.jl")
+    product_code = include("$(@__DIR__)/product.jl")
     e =
         quote
             module $arrow_type
