@@ -7,7 +7,7 @@ source(::Type{Arrow{A,B}}) where {A, B} = A
 target(::Arrow{A,B}) where {A, B} = B
 target(::Type{Arrow{A,B}}) where {A, B} = B
 
-export source, target, @arrow, @alias
+export source, target, @arrow, @alias, typestr
 
 "Compute the source and target of the composed morphism g o f, or error if they are not composable."
 function composition_obj(g::Arrow, f::Arrow)
@@ -19,7 +19,7 @@ function composition_obj(g::Arrow, f::Arrow)
     if Bf <: Bg
         return (A, C) # Composition will be an Arrow{A, C}
     else
-        error("Cannot compose")
+        error("Cannot compose ($A~>$Bf) to ($Bg~>$C)")
     end
 end
 
@@ -29,6 +29,10 @@ function compose
 end
 
 function lift
+end
+
+function typestr(a::Arrow)
+    "$(typeof(a).name) :: $(source(a)) ~> $(target(a))"
 end
 
 "
