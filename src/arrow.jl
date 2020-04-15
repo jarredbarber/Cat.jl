@@ -16,7 +16,7 @@ function composition_obj(g::Arrow, f::Arrow)
     Bg = source(g)
     C = target(g)
 
-    if Bf == Bg
+    if Bf <: Bg
         return (A, C) # Composition will be an Arrow{A, C}
     else
         error("Cannot compose")
