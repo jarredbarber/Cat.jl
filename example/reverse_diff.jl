@@ -75,6 +75,8 @@ means: A ~> B  and B ~> C compose to A ~> C, but the composition rules aren't th
 as Smooth.  This is kind of similar to how Kleisli composition works.
 
 We handle this in _code_ by simply re-using Smooth and changing out RDiff acts on composition.
+The downside to this (compared to, say, ForwardDiff) is that we lose some of the automagicness
+of letting Cat.jl define how the functor acts on all of the built-in arrows (product, terminal, constant, etc...)
 =#
 @functor RDiff :: Smooth => Smooth (T -> T)
 
