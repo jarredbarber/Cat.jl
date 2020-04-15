@@ -54,9 +54,29 @@ end
 end
 
 
-# Reverse diff changes the way composition works,
-# so we can't leverage defaults
-@functor RDiff :: Smooth => Smooth (T -> Tuple{T, T})
+#=
+Reverse mode diff:
+
+In reverse mode AD, we take a function a -> b
+and convert it to a function (a, db) -> (b, da)
+where "da" is the space of "differentials of a"; 
+for our basic setup here, where we work in R^N, da == a,
+but this could be something like e.g. a tangent/cotangent bundle.
+Basically, the RDiff function takes an input and an output differential
+and converts them to an output and an input differential.
+
+Mathematically (from a categorical point of view), RDiff is a functor
+that takes the Smooth category to a new category where:
+(1) the objects are the same as Smooth
+and 
+(2) a morphism (arrow) from A ~> B corresponds to an arrow (A x dB) -> (B x dA) in Smooth
+so, we have the same objects/morphisms as smooth, but we are basically changing what composition
+means: A ~> B  and B ~> C compose to A ~> C, but the composition rules aren't the same
+as Smooth.  This is kind of similar to how Kleisli composition works.
+
+We handle this in _code_ by simply re-using Smooth and changing out RDiff acts on composition.
+=#
+@functor RDiff :: Smooth => Smooth (T -> T)
 
 #= RDiff(m::Smooth.Identity{T}) where {T} = Smooth.Identity{RDiff(T)}() =#
 # Cartesian
@@ -77,8 +97,7 @@ RDiff(m::Smooth.Product) = begin
 end
 
 RDiff(m::Smooth.Proj{A, B}) where {A,B} = begin
-    @assert false # this is actually not impelmented properly but we don't need it here
-    Smooth.Proj{RDiff(A), RDiff(B)}(m.m)
+    @assert false # this is actually not impelmented properly but we don't need it for this example
 end
 
 # Terminal is T ~> Nothing, so (T, Nothing) -> (Nothing, T)
@@ -98,10 +117,10 @@ function RDiff(m::Smooth.Composed)
     w = df(inps[1], z[2])
     (w[2], z[1])
     =#
-    f = compose(m.f, inps[1])
-    z = compose(dg, Smooth.Product(f, inps[2]))
+    f = compose(m.f, inps[1]) # A better implementation would memoize f
+    z = compose(dg, Smooth.Product(f, inps[2])) # z :: (~) ~> (c, db)
     w = compose(df, Smooth.Product(inps[1], z[2]))
-    Smooth.Product(w[2], z[1])
+    Smooth.Product(z[1], w[2])
 end
 
 function split_inputs(m::Smooth.Arrow)
@@ -109,9 +128,6 @@ function split_inputs(m::Smooth.Arrow)
     return (a[1], a[2])
 end
 
-# b = a1 + a2
-# db = da1 + da2
-#
 function RDiff(m::Plus)
     a, db = split_inputs(m)
     Smooth.Product(a[1] + a[2],
@@ -124,7 +140,6 @@ function RDiff(m::Mult)
                    Smooth.Product(a[1]*db, a[2]*db))
 end
 
-# Nothing ~> T => (Nothing, dT) ~> (T, Nothing)
 function RDiff(m::Smooth.Constant)
     # map inputs into Nothing, then return a constant
     compose(Smooth.Product(Smooth.Constant(m.val),
@@ -151,8 +166,7 @@ end
 # Here is the actual "user code"
 x = Placeholder()
 y = cos(sin(x))
-#= y = exp(y*y) + 2.0 =#
-#= y = Cos() =#
+y = exp(y*y) + 2.0
 dy = RDiff(y)
 
 a = 1.0
