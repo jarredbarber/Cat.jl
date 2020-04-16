@@ -2,6 +2,7 @@
 
 Library for building composable DSLs with multiple interpretaions ala [Compiling To Categories](http://conal.net/papers/compiling-to-categories).
 
+
 ## Basic concepts
 
 1. `@category` defines a new category, which is a collection of arrows - composable building blocks.  An `Arrow{A, B}` can always be composed with an `Arrow{B, C}` (in the same category) to form an `Arrow{A, C}`.
@@ -11,7 +12,7 @@ Library for building composable DSLs with multiple interpretaions ala [Compiling
 
 ## MVP Checklist
 
-* [x] Basic Cateogory definition
+* [x] Basic Category definition
 * [ ] Parametric arrow types
 * [x] Cartesian category constructions (products)
 * [ ] Closed category constructions (exponentials / higher-order arrows)
@@ -21,6 +22,8 @@ Library for building composable DSLs with multiple interpretaions ala [Compiling
 * [ ] Compelling example utilizing all of the above :)
 
 ## Toy examples
+
+See the `example` folder in the repo.
 
 Example (forward-mode autodiff, `example/autodiff.jl`):
 
